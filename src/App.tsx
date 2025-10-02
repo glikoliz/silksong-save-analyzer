@@ -3,6 +3,8 @@ import type { ReactElement } from 'react'
 import './App.css'
 import { decode } from './crypto'
 import { TOOL_ITEMS, NAIL_UPGRADES, MASKS, type MaskEntry, SPOOL_FRAGMENTS, SILK_HEARTS, MISC_ITEMS, CRESTS, SKILLS, TOOL_POUCH_UPGRADES, CRAFTING_KIT_UPGRADES, ABILITIES, type NailUpgrade } from './constants'
+import { useTranslation } from './i18n/useTranslation'
+import { makeGameTr, type GameCategory } from './i18n/gameTranslations'
 
 type NullableFile = File | null
 type ToolItem = { name: string; isUnlocked: boolean; link: string }
@@ -106,6 +108,8 @@ function makeItemRowsFromDefs(defs: any[], mapOk: Record<string, boolean>, actFi
 }
 
 function App(): ReactElement {
+  const { t, language, changeLanguage } = useTranslation()
+  const gameTr = makeGameTr(language)
   const [dragActive, setDragActive] = useState<boolean>(false)
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
   const [tools, setTools] = useState<ToolItem[]>([])
@@ -123,7 +127,6 @@ function App(): ReactElement {
   const [abilities, setAbilities] = useState<ItemRow[]>([])
   const [actFilter, setActFilter] = useState<0 | 1 | 2 | 3>(0)
   const [hideFound, setHideFound] = useState<boolean>(false)
-  const [expandedItemKey, setExpandedItemKey] = useState<string | null>(null)
   const [showTooltip, setShowTooltip] = useState<boolean>(false)
   const [fileError, setFileError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -136,6 +139,11 @@ function App(): ReactElement {
       return () => clearTimeout(timer)
     }
   }, [fileError])
+
+  // Обновляем заголовок документа при смене языка
+  useEffect(() => {
+    document.title = t('title')
+  }, [t])
 
   const processFile = useCallback(async (pickedFile: File) => {
     setIsProcessing(true)
@@ -155,7 +163,6 @@ function App(): ReactElement {
       const fleaEnded = Boolean(pd?.FleaGamesEnded)
       setNail(nailsFromRaw(nailUpgradesRaw, gotGourmand, fleaEnded))
       const toolPouchUpgradesRaw = Number(pd?.ToolPouchUpgrades ?? 0)
-      const purchasedPilgrimsRest = Boolean(pd?.PurchasedPilgrimsRestToolPouch)
       const pinGalleryChallenge = Boolean(pd?.PinGalleryLastChallengeOpen)
       const questsArr = safeArray(pd?.QuestCompletionData?.savedData)
       let journalCompleted = false
@@ -166,11 +173,10 @@ function App(): ReactElement {
       }
       setToolPouch(toolPouchFromRaw(toolPouchUpgradesRaw, journalCompleted, pinGalleryChallenge))
       const toolKitUpgradesRaw = Number(pd?.ToolKitUpgrades ?? 0)
-      const purchasedForgeToolKit = Boolean(pd?.PurchasedForgeToolKit)
       const purchasedGrindleToolKit = Boolean(pd?.purchasedGrindleToolKit)
       const purchasedArchitectToolKit = Boolean(pd?.PurchasedArchitectToolKit)
       setCraftingKit(craftingKitFromRaw(toolKitUpgradesRaw, purchasedGrindleToolKit, purchasedArchitectToolKit))
-      const obtainedByKey = buildSceneBoolSet(parsed, (sceneName, id) => (id === 'Heart Piece' || (typeof id === 'string' && id.startsWith('Heart Piece'))))
+      const obtainedByKey = buildSceneBoolSet(parsed, (_sceneName, id) => (id === 'Heart Piece' || (typeof id === 'string' && id.startsWith('Heart Piece'))))
       const completedQuests = getCompletedQuestsSet(pd)
       const shards = MASKS.map((entry: MaskEntry) => {
         if (entry.type === 'sceneData') {
@@ -190,7 +196,7 @@ function App(): ReactElement {
         return { name: entry.display, ok, link: entry.link, desc: entry.desc, act: entry.whichAct }
       })
       setMaskShards(shards)
-      const spoolSceneOk = buildSceneBoolSet(parsed, (sceneName, id) => (id === 'Silk Spool' || (typeof id === 'string' && id.startsWith('Silk Spool'))))
+      const spoolSceneOk = buildSceneBoolSet(parsed, (_sceneName, id) => (id === 'Silk Spool' || (typeof id === 'string' && id.startsWith('Silk Spool'))))
       const completedQuests2 = getCompletedQuestsSet(pd)
       const spool = SPOOL_FRAGMENTS.map(e => {
         if (e.type === 'sceneData') {
@@ -210,7 +216,7 @@ function App(): ReactElement {
         return { name: e.display, ok, link: e.link, desc: e.desc, act: e.whichAct }
       })
       setSpoolFrags(spool)
-      const silkHeartScenes = buildSceneBoolSet(parsed, (sceneName, id) => id === 'glow_rim_Remasker')
+      const silkHeartScenes = buildSceneBoolSet(parsed, (_sceneName, id) => id === 'glow_rim_Remasker')
       const hearts = SILK_HEARTS.map(h => ({ name: h.display, ok: silkHeartScenes.has(`${h.sceneName}|${h.id}`), link: h.link, desc: h.desc, act: h.whichAct }))
       setSilkHearts(hearts)
       const collectablesMap = extractCollectablesMap(pd)
@@ -254,13 +260,13 @@ function App(): ReactElement {
     if (!f) return
     
     if (!f.name.toLowerCase().endsWith('.dat')) {
-      setFileError('Please select a .dat file')
+      setFileError(t('fileError'))
       return
     }
     
     setFileError(null)
     void processFile(f)
-  }, [processFile])
+  }, [processFile, t])
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] ?? null
@@ -292,15 +298,31 @@ function App(): ReactElement {
   return (
     <div className="container">
       <header className="header">
-        <h1 className="title">Silksong 100% Analyzer</h1>
-        <p className="subtitle">Upload your save file (user*.dat) from: %USERPROFILE%\AppData\LocalLow\Team Cherry\Hollow Knight Silksong</p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <h1 className="title">{t('title')}</h1>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button 
+              className={`btn small ${language === 'ru' ? 'primary' : ''}`}
+              onClick={() => changeLanguage('ru')}
+            >
+              RU
+            </button>
+            <button 
+              className={`btn small ${language === 'en' ? 'primary' : ''}`}
+              onClick={() => changeLanguage('en')}
+            >
+              EN
+            </button>
+          </div>
+        </div>
+        <p className="subtitle">{t('subtitle')}</p>
       </header>
-      <section className={`dropzone ${dragActive ? 'active' : ''}`} onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave} role="button" aria-label="Drag and drop a .dat file here" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') triggerBrowse() }}>
+      <section className={`dropzone ${dragActive ? 'active' : ''}`} onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave} role="button" aria-label={t('dropAria')} tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') triggerBrowse() }}>
         <input ref={fileInputRef} type="file" accept=".dat,application/octet-stream" onChange={handleFileChange} className="file-input" />
         <div className="dropzone-inner">
           <div className="dropzone-icon" aria-hidden>⬇️</div>
           <div className="dropzone-text">
-            <strong>Drag and drop</strong> a user.dat file here or <button className="linklike" onClick={triggerBrowse}>browse</button>
+            <span>{t('dropText')}</span> <button className="linklike" onClick={triggerBrowse}>{t('browse')}</button>
           </div>
           {fileError && (
             <div style={{ 
@@ -319,24 +341,24 @@ function App(): ReactElement {
       </section>
       {isProcessing && (
         <section className="actions">
-          <button className="btn primary" disabled>Processing...</button>
+          <button className="btn primary" disabled>{t('processing')}</button>
         </section>
       )}
       {processed && (
         <section className="section">
           {(() => {
             const categories = [
-              { key: 'nail', name: 'Needle upgrades', percent: 4, items: ['Sharpened Needle', 'Shining Needle', 'Hivesteel Needle', 'Pale Steel Needle'] },
-              { key: 'ancientMasks', name: 'Ancient Masks', percent: Math.floor(maskShards.length / 4), items: [] },
-              { key: 'silkSpool', name: 'Silk Spool', percent: Math.floor(spoolFrags.length / 2), items: [] },
-              { key: 'silkHearts', name: 'Silk Hearts', percent: 3, items: ['Silk Heart 1', 'Silk Heart 2', 'Silk Heart 3'] },
-              { key: 'misc', name: 'Miscellaneous', percent: 2, items: ['Sylphsong (EVAHEAL/BoundCrestUpgrader)', 'Everbloom (WhiteFlower)'] },
-              { key: 'crests', name: 'Crests', percent: 6, items: ['Architect (Toolmaster)', 'Beast (Warrior)', 'Reaper (Reaper)', 'Shaman (Spell)', 'Wanderer (Wanderer)', 'Witch (Witch)'] },
-              { key: 'skills', name: 'Skills', percent: 6, items: ['Cross Stitch (Parry)', 'Pale Nails (Silk Boss Needle)', 'Sharpdart (Silk Charge)', 'Silkspear (Silk Spear)', 'Rune Rage (Silk Bomb)', 'Thread Storm (Thread Sphere)'] },
-              { key: 'craftingKit', name: 'Crafting Kit Upgrades', percent: 4, items: ['Expansion 1', 'Expansion 2', 'Expansion 3', 'Expansion 4'] },
-              { key: 'toolPouch', name: 'Tool Pouch Upgrades', percent: 4, items: ['Expansion 1', 'Expansion 2', 'Expansion 3', 'Expansion 4'] },
-              { key: 'abilities', name: 'Abilities', percent: 6, items: ['Clawline', 'Cling Grip', 'Needle Strike', 'Needolin', 'Silk Soar', 'Swift Step'] },
-              { key: 'tools', name: 'Tools', percent: 51, items: [] }
+              { key: 'nail', name: t('needleUpgrades'), percent: 4, items: ['Sharpened Needle', 'Shining Needle', 'Hivesteel Needle', 'Pale Steel Needle'] },
+              { key: 'ancientMasks', name: t('ancientMasks'), percent: Math.floor(maskShards.length / 4), items: [] },
+              { key: 'silkSpool', name: t('silkSpool'), percent: Math.floor(spoolFrags.length / 2), items: [] },
+              { key: 'silkHearts', name: t('silkHearts'), percent: 3, items: ['Silk Heart 1', 'Silk Heart 2', 'Silk Heart 3'] },
+              { key: 'misc', name: t('miscellaneous'), percent: 2, items: ['Sylphsong (EVAHEAL/BoundCrestUpgrader)', 'Everbloom (WhiteFlower)'] },
+              { key: 'crests', name: t('crests'), percent: 6, items: ['Architect (Toolmaster)', 'Beast (Warrior)', 'Reaper (Reaper)', 'Shaman (Spell)', 'Wanderer (Wanderer)', 'Witch (Witch)'] },
+              { key: 'skills', name: t('skills'), percent: 6, items: ['Cross Stitch (Parry)', 'Pale Nails (Silk Boss Needle)', 'Sharpdart (Silk Charge)', 'Silkspear (Silk Spear)', 'Rune Rage (Silk Bomb)', 'Thread Storm (Thread Sphere)'] },
+              { key: 'craftingKit', name: t('craftingKitUpgrades'), percent: 4, items: ['Expansion 1', 'Expansion 2', 'Expansion 3', 'Expansion 4'] },
+              { key: 'toolPouch', name: t('toolPouchUpgrades'), percent: 4, items: ['Expansion 1', 'Expansion 2', 'Expansion 3', 'Expansion 4'] },
+              { key: 'abilities', name: t('abilities'), percent: 6, items: ['Clawline', 'Cling Grip', 'Needle Strike', 'Needolin', 'Silk Soar', 'Swift Step'] },
+              { key: 'tools', name: t('tools'), percent: 51, items: [] }
             ]
             const complete = (key: string) => {
               const filterByAct = (items: any[]) => {
@@ -406,8 +428,6 @@ function App(): ReactElement {
               return false
             }
             const categoryProgress = (key: string): { have: number; total: number } => {
-              const def = categories.find(c => c.key === key)
-              const total = def?.percent ?? 0
 
               const filterByAct = (items: any[]) => {
                 if (actFilter === 0) return items
@@ -640,14 +660,14 @@ function App(): ReactElement {
                     return (
                       <div style={{ textAlign: 'center', marginBottom: '20px', padding: '16px', background: 'linear-gradient(135deg, #1a1f2e 0%, #242a33 100%)', borderRadius: '12px', border: '1px solid #2a3441' }}>
                         <div style={{ fontSize: '16px', color: '#94a3b8', marginBottom: '8px', fontWeight: '500' }}>
-                          Overall Completion (%)
+                          {t('overallCompletion')}
                         </div>
                         <div style={{ fontSize: '32px', fontWeight: 'bold', color: globalTotals.have === globalTotals.total ? '#2ecc71' : '#ff7a86', marginBottom: '12px' }}>
                           {globalTotals.have} / {globalTotals.total}
                         </div>
 
                         <div style={{ fontSize: '14px', color: '#94a3b8', marginBottom: '8px', textAlign: 'center', position: 'relative' }}>
-                          Individual Items{' '}
+                          {t('individualItems')}{' '}
                           <button
                             style={{
                               background: 'none',
@@ -686,9 +706,12 @@ function App(): ReactElement {
                               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
                               marginTop: '4px'
                             }}>
-                              Counts all individual items including mask shards and spool fragments
-                              <br />
-                              Unlike percentage above which counts completed masks/spools only
+{t('tooltipText').split('\n').map((line, i) => (
+                                <React.Fragment key={i}>
+                                  {line}
+                                  {i < t('tooltipText').split('\n').length - 1 && <br />}
+                                </React.Fragment>
+                              ))}
                             </div>
                           )}
                         </div>
@@ -697,19 +720,19 @@ function App(): ReactElement {
                             <div style={{ fontSize: '16px', fontWeight: 'bold', color: act1.itemsHave === act1.itemsTotal ? '#2ecc71' : '#94a3b8' }}>
                               {act1.itemsHave} / {act1.itemsTotal}
                             </div>
-                            <div style={{ fontSize: '12px', color: '#64748b' }}>Act 1</div>
+                            <div style={{ fontSize: '12px', color: '#64748b' }}>{t('act1')}</div>
                           </div>
                           <div style={{ flex: 1, textAlign: 'center' }}>
                             <div style={{ fontSize: '16px', fontWeight: 'bold', color: act2.itemsHave === act2.itemsTotal ? '#2ecc71' : '#94a3b8' }}>
                               {act2.itemsHave} / {act2.itemsTotal}
                             </div>
-                            <div style={{ fontSize: '12px', color: '#64748b' }}>Act 2</div>
+                            <div style={{ fontSize: '12px', color: '#64748b' }}>{t('act2')}</div>
                           </div>
                           <div style={{ flex: 1, textAlign: 'center' }}>
                             <div style={{ fontSize: '16px', fontWeight: 'bold', color: act3.itemsHave === act3.itemsTotal ? '#2ecc71' : '#94a3b8' }}>
                               {act3.itemsHave} / {act3.itemsTotal}
                             </div>
-                            <div style={{ fontSize: '12px', color: '#64748b' }}>Act 3</div>
+                            <div style={{ fontSize: '12px', color: '#64748b' }}>{t('act3')}</div>
                           </div>
                         </div>
                         <div style={{ width: '100%', height: '8px', background: '#1e293b', borderRadius: '4px', overflow: 'hidden' }}>
@@ -719,10 +742,10 @@ function App(): ReactElement {
                     )
                   })()}
                   <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                    <button className={`btn small ${actFilter === 0 ? 'primary' : ''}`} onClick={() => setActFilter(0)}>All</button>
-                    <button className={`btn small ${actFilter === 1 ? 'primary' : ''}`} onClick={() => setActFilter(1)}>Act 1</button>
-                    <button className={`btn small ${actFilter === 2 ? 'primary' : ''}`} onClick={() => setActFilter(2)}>Act 2</button>
-                    <button className={`btn small ${actFilter === 3 ? 'primary' : ''}`} onClick={() => setActFilter(3)}>Act 3</button>
+                    <button className={`btn small ${actFilter === 0 ? 'primary' : ''}`} onClick={() => setActFilter(0)}>{t('all')}</button>
+                    <button className={`btn small ${actFilter === 1 ? 'primary' : ''}`} onClick={() => setActFilter(1)}>{t('act1')}</button>
+                    <button className={`btn small ${actFilter === 2 ? 'primary' : ''}`} onClick={() => setActFilter(2)}>{t('act2')}</button>
+                    <button className={`btn small ${actFilter === 3 ? 'primary' : ''}`} onClick={() => setActFilter(3)}>{t('act3')}</button>
                   </div>
                   <div className="placeholder-grid">
                     {categories.map(c => (
@@ -731,7 +754,7 @@ function App(): ReactElement {
                           {c.name}
                           {actFilter !== 0 && (c.key === 'ancientMasks' || c.key === 'silkSpool') && (
                             <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 'normal', marginTop: '2px' }}>
-                              {c.key === 'ancientMasks' ? '(individual shards)' : '(individual fragments)'}
+                              {c.key === 'ancientMasks' ? t('individualShards') : t('individualFragments')}
                             </div>
                           )}
                         </div>
@@ -750,7 +773,7 @@ function App(): ReactElement {
                                   {pr.have} / {pr.total}
                                 </div>
                                 <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                                  {fragments} {c.key === 'ancientMasks' ? 'shards' : 'fragments'}
+                                  {fragments} {c.key === 'ancientMasks' ? t('shards') : t('fragments')}
                                 </div>
                               </div>
                             );
@@ -764,11 +787,11 @@ function App(): ReactElement {
                 </div>
                 <div className="details-panel">
                   <div className="details-header">
-                    <div className="details-title">{selected ? selected.name : 'Details'}</div>
-                    <div className="details-sub">{selected ? `${selected.percent} total` : 'Select a category'}</div>
+                    <div className="details-title">{selected ? selected.name : t('details')}</div>
+                    <div className="details-sub">{selected ? `${selected.percent} ${t('total')}` : t('selectCategory')}</div>
                   </div>
                   <div className="filters-row">
-                    <button className={`btn small ${hideFound ? 'primary' : ''}`} onClick={() => setHideFound(v => !v)}>{hideFound ? 'Show all' : 'Show only missing'}</button>
+                    <button className={`btn small ${hideFound ? 'primary' : ''}`} onClick={() => setHideFound(v => !v)}>{hideFound ? t('showAll') : t('showOnlyMissing')}</button>
                   </div>
                   <div className="details-content">
                     {(() => {
@@ -776,20 +799,18 @@ function App(): ReactElement {
                       return rows.map((it: any, idx: number) => {
                         const actVal = (it as any).act as number | undefined
                         const hasLink = Boolean(it.link && it.link.length > 0 && it.link !== '#')
+                        const cat = (selected?.key ?? 'tools') as GameCategory
+                        const displayName = gameTr.name(cat, it.name, it.name)
                         return (
-                          <div key={it.key ?? `${selected?.key ?? 'none'}-${idx}`} className="item-row" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto auto auto', alignItems: 'center', gap: '8px' }}>
+                          <div key={it.key ?? `${selected?.key ?? 'none'}-${idx}`} className="item-row" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto auto', alignItems: 'center', gap: '8px' }}>
                             {typeof actVal !== 'undefined' ? (
-                              <span className={`act-badge act-${actVal ?? 0}`}>Act {actVal ?? '?'}</span>
+                              <span className={`act-badge act-${actVal ?? 0}`}>{t('actLabel')} {actVal ?? '?'}</span>
                             ) : (
-                              <span className={`act-badge act-0`} style={{ visibility: 'hidden' }}>Act 0</span>
+                              <span className={`act-badge act-0`} style={{ visibility: 'hidden' }}>{t('actLabel')} 0</span>
                             )}
-                            <span className="item-name">{it.name}</span>
-                            <a className="btn small" href={hasLink ? it.link : '#'} target="_blank" rel="noopener noreferrer" aria-disabled={hasLink ? undefined : true} style={hasLink ? undefined : { pointerEvents: 'none', opacity: 0.5 }}>Open map</a>
-                            <button className="btn small" onClick={() => setExpandedItemKey(expandedItemKey === it.key ? null : it.key)}>Details</button>
-                            <span className={`badge ${it.ok ? 'ok' : 'no'}`} aria-label={it.ok ? 'obtained' : 'not obtained'} title={it.ok ? 'obtained' : 'not obtained'}>{it.ok ? '✓' : '✗'}</span>
-                            {expandedItemKey === it.key && (
-                              <div style={{ gridColumn: '1 / -1', color: '#cbd5e1', fontSize: 13 }}>{it.desc ? it.desc : 'No description yet.'}</div>
-                            )}
+                            <span className="item-name">{displayName}</span>
+                            <a className="btn small" href={hasLink ? it.link : '#'} target="_blank" rel="noopener noreferrer" aria-disabled={hasLink ? undefined : true} style={hasLink ? undefined : { pointerEvents: 'none', opacity: 0.5 }}>{t('openMap')}</a>
+                            <span className={`badge ${it.ok ? 'ok' : 'no'}`} aria-label={it.ok ? t('obtained') : t('notObtained')} title={it.ok ? t('obtained') : t('notObtained')}>{it.ok ? '✓' : '✗'}</span>
                           </div>
                         )
                       })
