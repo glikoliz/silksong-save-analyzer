@@ -1,16 +1,21 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
 import './App.css'
+import EnemyIcon from './components/EnemyIcon'
+import EnemyCard from './components/EnemyCard'
 import { decode } from './crypto'
 import { TOOL_ITEMS, NAIL_UPGRADES, MASKS, type MaskEntry, SPOOL_FRAGMENTS, SILK_HEARTS, MISC_ITEMS, CRESTS, SKILLS, TOOL_POUCH_UPGRADES, CRAFTING_KIT_UPGRADES, ABILITIES, type NailUpgrade } from './constants'
 import { useTranslation } from './i18n/useTranslation'
+import { HUNTER_JOURNAL_TARGETS, HUNTER_NAME_MAP } from './hunter'
+import { getHunterOrder } from './hunterOrder'
 import { makeGameTr, type GameCategory } from './i18n/gameTranslations'
 
 type NullableFile = File | null
 type ToolItem = { name: string; isUnlocked: boolean; link: string }
-type ItemRow = { key?: string; name: string; ok: boolean; link?: string; desc?: string; act?: number }
+type ItemRow = { key?: string; name: string; ok: boolean; link?: string; act?: number }
 
 type FourFlags = { u1: boolean; u2: boolean; u3: boolean; u4: boolean }
+type HunterEntry = { name: string; kills: number; target: number; optional?: boolean }
 
 function safeArray(v: any): any[] { return Array.isArray(v) ? v : [] }
 
@@ -90,7 +95,7 @@ function toolsFromMap(map: Map<string, boolean>) {
 }
 
 function skillsFromMap(map: Map<string, boolean>) {
-  return SKILLS.map(s => ({ name: s.display, ok: map.get(s.internalId) === true, link: s.link, desc: s.desc, act: s.whichAct }))
+  return SKILLS.map(s => ({ name: s.display, ok: map.get(s.internalId) === true, link: s.link, act: s.whichAct }))
 }
 
 function nailsFromRaw(nailUpgradesRaw: number, gotGourmand: boolean, fleaEnded: boolean) {
@@ -106,7 +111,7 @@ function craftingKitFromRaw(toolKitUpgradesRaw: number, purchasedGrindleToolKit:
 }
 
 function makeItemRowsFromDefs(defs: any[], mapOk: Record<string, boolean>, actFilter: number, hideFound: boolean) {
-  return defs.filter((u: any) => (actFilter === 0 || u.whichAct === actFilter) && (!hideFound ? true : !mapOk[u.key])).map((u: any) => ({ key: u.key, name: u.display, ok: Boolean(mapOk[u.key]), link: u.link, desc: u.desc, act: u.whichAct }))
+  return defs.filter((u: any) => (actFilter === 0 || u.whichAct === actFilter) && (!hideFound ? true : !mapOk[u.key])).map((u: any) => ({ key: u.key, name: u.display, ok: Boolean(mapOk[u.key]), link: u.link, act: u.whichAct }))
 }
 
 function App(): ReactElement {
@@ -127,10 +132,12 @@ function App(): ReactElement {
   const [crests, setCrests] = useState<ItemRow[]>([])
   const [skills, setSkills] = useState<ItemRow[]>([])
   const [abilities, setAbilities] = useState<ItemRow[]>([])
+  const [hunterEntries, setHunterEntries] = useState<HunterEntry[]>([])
   const [actFilter, setActFilter] = useState<0 | 1 | 2 | 3>(0)
   const [hideFound, setHideFound] = useState<boolean>(false)
   const [showTooltip, setShowTooltip] = useState<boolean>(false)
   const [fileError, setFileError] = useState<string | null>(null)
+  const [hunterFilter, setHunterFilter] = useState<'all' | 'found' | 'notFound' | 'incomplete'>('all')
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   useEffect(() => {
@@ -142,7 +149,6 @@ function App(): ReactElement {
     }
   }, [fileError])
 
-  // Обновляем заголовок документа при смене языка
   useEffect(() => {
     document.title = t('title')
   }, [t])
@@ -188,14 +194,14 @@ function App(): ReactElement {
             const baseKey = `${entry.ingame[0]}|Heart Piece`
             ok = obtainedByKey.has(baseKey)
           }
-          return { name: entry.display, ok, link: entry.link, desc: entry.desc, act: entry.whichAct }
+          return { name: entry.display, ok, link: entry.link, act: entry.whichAct }
         }
         if (entry.type === 'flag') {
           const ok = Boolean((pd as any)?.[entry.flag]) === true
-          return { name: entry.display, ok, link: entry.link, desc: entry.desc, act: entry.whichAct }
+          return { name: entry.display, ok, link: entry.link, act: entry.whichAct }
         }
         const ok = completedQuests.has(entry.questName)
-        return { name: entry.display, ok, link: entry.link, desc: entry.desc, act: entry.whichAct }
+        return { name: entry.display, ok, link: entry.link, act: entry.whichAct }
       })
       setMaskShards(shards)
       const spoolSceneOk = buildSceneBoolSet(parsed, (_sceneName, id) => (id === 'Silk Spool' || (typeof id === 'string' && id.startsWith('Silk Spool'))))
@@ -208,28 +214,28 @@ function App(): ReactElement {
             const baseKey = `${e.ingame![0]}|Silk Spool`
             ok = spoolSceneOk.has(baseKey)
           }
-          return { name: e.display, ok, link: e.link, desc: e.desc, act: e.whichAct }
+          return { name: e.display, ok, link: e.link, act: e.whichAct }
         }
         if (e.type === 'flag') {
           const ok = Boolean((pd as any)?.[e.flag!]) === true
-          return { name: e.display, ok, link: e.link, desc: e.desc, act: e.whichAct }
+          return { name: e.display, ok, link: e.link, act: e.whichAct }
         }
         const ok = completedQuests2.has(e.questName!)
-        return { name: e.display, ok, link: e.link, desc: e.desc, act: e.whichAct }
+        return { name: e.display, ok, link: e.link, act: e.whichAct }
       })
       setSpoolFrags(spool)
       const silkHeartScenes = buildSceneBoolSet(parsed, (_sceneName, id) => id === 'glow_rim_Remasker')
-      const hearts = SILK_HEARTS.map(h => ({ name: h.display, ok: silkHeartScenes.has(`${h.sceneName}|${h.id}`), link: h.link, desc: h.desc, act: h.whichAct }))
+      const hearts = SILK_HEARTS.map(h => ({ name: h.display, ok: silkHeartScenes.has(`${h.sceneName}|${h.id}`), link: h.link, act: h.whichAct }))
       setSilkHearts(hearts)
       const collectablesMap = extractCollectablesMap(pd)
       const misc = MISC_ITEMS.map(m => {
         if (m.type === 'flag') {
           const ok = Boolean((pd as any)?.[m.flag]) === true
-          return { name: m.display, ok, link: m.link, desc: m.desc, act: m.whichAct }
+          return { name: m.display, ok, link: m.link, act: m.whichAct }
         }
         const amount = collectablesMap.get(m.name) ?? 0
         const ok = amount >= m.amount
-        return { name: m.display, ok, link: m.link, desc: m.desc, act: m.whichAct }
+        return { name: m.display, ok, link: m.link, act: m.whichAct }
       })
       setMiscItems(misc)
       const toolEquipsArr: any[] = safeArray(pd?.ToolEquips?.savedData)
@@ -239,10 +245,26 @@ function App(): ReactElement {
         const isUnlocked = Boolean(te?.Data?.IsUnlocked ?? te?.data?.isUnlocked)
         if (name) crestMap.set(String(name), isUnlocked)
       }
-      const crestsData = CRESTS.map(c => ({ name: c.display, ok: crestMap.get(c.internalId) === true, link: c.link, desc: c.desc, act: c.whichAct }))
+      const crestsData = CRESTS.map(c => ({ name: c.display, ok: crestMap.get(c.internalId) === true, link: c.link, act: c.whichAct }))
       setCrests(crestsData)
-      const abilitiesData = ABILITIES.map(a => ({ name: a.display, ok: Boolean((pd as any)?.[a.flag]) === true, link: a.link, desc: a.desc, act: a.whichAct }))
+      const abilitiesData = ABILITIES.map(a => ({ name: a.display, ok: Boolean((pd as any)?.[a.flag]) === true, link: a.link, act: a.whichAct }))
       setAbilities(abilitiesData)
+      const enemyList: any[] = Array.isArray(pd?.EnemyJournalKillData?.list) ? pd.EnemyJournalKillData.list : []
+      const enemyMap = new Map<string, number>()
+      for (const e of enemyList) {
+        const name = String(e?.Name ?? '')
+        if (name) {
+          enemyMap.set(name, Number(e?.Record?.Kills ?? 0))
+        }
+      }
+      const optionalEnemies = new Set(['Shakra', 'Garmond_Zaza', 'Abyss Mass', 'Rock Roller', 'Cloverstag White', 'Garmond', 'Lost Lace'])
+      const hj = Object.keys(HUNTER_JOURNAL_TARGETS).map(name => {
+        const kills = enemyMap.get(name) ?? 0
+        const target = HUNTER_JOURNAL_TARGETS[name]
+        const optional = optionalEnemies.has(name)
+        return { name, kills, target, optional } as HunterEntry
+      })
+      setHunterEntries(hj)
     } catch (e) {
       setTools([])
       setSkills([])
@@ -252,6 +274,7 @@ function App(): ReactElement {
       setMiscItems([])
       setCrests([])
       setAbilities([])
+      setHunterEntries([])
     } finally {
       setIsProcessing(false)
       setProcessed(true)
@@ -260,12 +283,12 @@ function App(): ReactElement {
 
   const onFileChosen = useCallback((f: NullableFile) => {
     if (!f) return
-    
+
     if (!f.name.toLowerCase().endsWith('.dat')) {
       setFileError(t('fileError'))
       return
     }
-    
+
     setFileError(null)
     void processFile(f)
   }, [processFile, t])
@@ -300,19 +323,19 @@ function App(): ReactElement {
   return (
     <div className="container">
       <div style={{ position: 'absolute', top: '16px', right: '16px', display: 'flex', gap: '8px', zIndex: 1000 }}>
-            <button 
-              className={`btn small ${language === 'ru' ? 'primary' : ''}`}
-              onClick={() => changeLanguage('ru')}
-            >
-              RU
-            </button>
-            <button 
-              className={`btn small ${language === 'en' ? 'primary' : ''}`}
-              onClick={() => changeLanguage('en')}
-            >
-              EN
-            </button>
-          </div>
+        <button
+          className={`btn small ${language === 'ru' ? 'primary' : ''}`}
+          onClick={() => changeLanguage('ru')}
+        >
+          RU
+        </button>
+        <button
+          className={`btn small ${language === 'en' ? 'primary' : ''}`}
+          onClick={() => changeLanguage('en')}
+        >
+          EN
+        </button>
+      </div>
       <header className="header">
         <h1 className="title">{t('title')}</h1>
         <p className="subtitle">{t('subtitle')}</p>
@@ -325,12 +348,12 @@ function App(): ReactElement {
             <span>{t('dropText')}</span> <button className="linklike" onClick={triggerBrowse}>{t('browse')}</button>
           </div>
           {fileError && (
-            <div style={{ 
+            <div style={{
               marginTop: '12px',
-              padding: '8px 12px', 
-              backgroundColor: '#dc2626', 
-              color: 'white', 
-              borderRadius: '6px', 
+              padding: '8px 12px',
+              backgroundColor: '#dc2626',
+              color: 'white',
+              borderRadius: '6px',
               fontSize: '14px',
               textAlign: 'center'
             }}>
@@ -358,8 +381,9 @@ function App(): ReactElement {
               { key: 'craftingKit', name: t('craftingKitUpgrades'), percent: 4, items: ['Expansion 1', 'Expansion 2', 'Expansion 3', 'Expansion 4'] },
               { key: 'toolPouch', name: t('toolPouchUpgrades'), percent: 4, items: ['Expansion 1', 'Expansion 2', 'Expansion 3', 'Expansion 4'] },
               { key: 'abilities', name: t('abilities'), percent: 6, items: ['Clawline', 'Cling Grip', 'Needle Strike', 'Needolin', 'Silk Soar', 'Swift Step'] },
-              { key: 'tools', name: t('tools'), percent: 51, items: [] }
+              { key: 'tools', name: t('tools'), percent: 51, items: [] },
             ]
+            const hunterJournalCategory = { key: 'huntersJournal', name: t('huntersJournal'), percent: hunterEntries.filter(h => !h.optional).length, items: [] }
             const complete = (key: string) => {
               const filterByAct = (items: any[]) => {
                 if (actFilter === 0) return items
@@ -424,6 +448,9 @@ function App(): ReactElement {
               if (key === 'abilities') {
                 const filteredAbilities = filterByAct(abilities)
                 return filteredAbilities.length === 0 || filteredAbilities.every(a => a.ok)
+              }
+              if (key === 'huntersJournal') {
+                return hunterEntries.length === 0 || hunterEntries.every(h => h.kills >= h.target)
               }
               return false
             }
@@ -522,6 +549,12 @@ function App(): ReactElement {
                 const have = Math.min(got, totalAbilities)
                 return { have, total: totalAbilities }
               }
+              if (key === 'huntersJournal') {
+                const requiredEntries = hunterEntries.filter(h => !h.optional)
+                const have = requiredEntries.filter(h => h.kills >= h.target).length
+                const total = requiredEntries.length
+                return { have, total }
+              }
               return { have: 0, total: 0 }
             }
             const globalTotals = (() => {
@@ -566,33 +599,51 @@ function App(): ReactElement {
               }
               if (key === 'tools') return tools.map(t => {
                 const meta = TOOL_ITEMS.find(tm => tm.display === t.name)
-                return { key: `tool-${t.name}`, name: t.name, ok: t.isUnlocked, link: t.link, desc: meta?.desc, act: meta?.whichAct ?? 0 }
+                return { key: `tool-${t.name}`, name: t.name, ok: t.isUnlocked, link: t.link, act: meta?.whichAct ?? 0 }
               }).filter(it => (actFilter === 0 || (typeof it.act !== 'undefined' && it.act === actFilter)) && (!hideFound ? true : !it.ok))
               if (key === 'ancientMasks') {
-                return maskShards.filter(s => (actFilter === 0 || s.act === actFilter) && (!hideFound ? true : !s.ok)).map((s, i) => ({ key: `mask-${i}`, name: s.name, ok: s.ok, link: s.link, desc: s.desc, act: s.act }))
+                return maskShards.filter(s => (actFilter === 0 || s.act === actFilter) && (!hideFound ? true : !s.ok)).map((s, i) => ({ key: `mask-${i}`, name: s.name, ok: s.ok, link: s.link, act: s.act }))
               }
               if (key === 'silkSpool') {
-                return spoolFrags.filter(s => (actFilter === 0 || s.act === actFilter) && (!hideFound ? true : !s.ok)).map((s, i) => ({ key: `spool-${i}`, name: s.name, ok: s.ok, link: s.link, desc: s.desc, act: s.act }))
+                return spoolFrags.filter(s => (actFilter === 0 || s.act === actFilter) && (!hideFound ? true : !s.ok)).map((s, i) => ({ key: `spool-${i}`, name: s.name, ok: s.ok, link: s.link, act: s.act }))
               }
               if (key === 'silkHearts') {
-                return silkHearts.filter(h => (actFilter === 0 || h.act === actFilter) && (!hideFound ? true : !h.ok)).map((h, i) => ({ key: `heart-${i}`, name: h.name, ok: h.ok, link: h.link, desc: h.desc, act: h.act }))
+                return silkHearts.filter(h => (actFilter === 0 || h.act === actFilter) && (!hideFound ? true : !h.ok)).map((h, i) => ({ key: `heart-${i}`, name: h.name, ok: h.ok, link: h.link, act: h.act }))
               }
               if (key === 'misc') {
-                return miscItems.filter(m => (actFilter === 0 || m.act === actFilter) && (!hideFound ? true : !m.ok)).map((m, i) => ({ key: `misc-${i}`, name: m.name, ok: m.ok, link: m.link, desc: m.desc, act: m.act }))
+                return miscItems.filter(m => (actFilter === 0 || m.act === actFilter) && (!hideFound ? true : !m.ok)).map((m, i) => ({ key: `misc-${i}`, name: m.name, ok: m.ok, link: m.link, act: m.act }))
               }
               if (key === 'crests') {
-                return crests.filter(c => (actFilter === 0 || c.act === actFilter) && (!hideFound ? true : !c.ok)).map((c, i) => ({ key: `crest-${i}`, name: c.name, ok: c.ok, link: c.link, desc: c.desc, act: c.act }))
+                return crests.filter(c => (actFilter === 0 || c.act === actFilter) && (!hideFound ? true : !c.ok)).map((c, i) => ({ key: `crest-${i}`, name: c.name, ok: c.ok, link: c.link, act: c.act }))
               }
               if (key === 'skills') {
-                return skills.filter(s => (actFilter === 0 || s.act === actFilter) && (!hideFound ? true : !s.ok)).map((s, i) => ({ key: `skill-${i}`, name: s.name, ok: s.ok, link: s.link, desc: s.desc, act: s.act }))
+                return skills.filter(s => (actFilter === 0 || s.act === actFilter) && (!hideFound ? true : !s.ok)).map((s, i) => ({ key: `skill-${i}`, name: s.name, ok: s.ok, link: s.link, act: s.act }))
               }
               if (key === 'abilities') {
-                return abilities.filter(a => (actFilter === 0 || a.act === actFilter) && (!hideFound ? true : !a.ok)).map((a, i) => ({ key: `ability-${i}`, name: a.name, ok: a.ok, link: a.link, desc: a.desc, act: a.act }))
+                return abilities.filter(a => (actFilter === 0 || a.act === actFilter) && (!hideFound ? true : !a.ok)).map((a, i) => ({ key: `ability-${i}`, name: a.name, ok: a.ok, link: a.link, act: a.act }))
+              }
+              if (key === 'huntersJournal') {
+                let list = hunterEntries
+                if (hunterFilter === 'found') list = list.filter(h => h.kills > 0)
+                else if (hunterFilter === 'notFound') list = list.filter(h => h.kills === 0)
+                else if (hunterFilter === 'incomplete') list = list.filter(h => h.kills > 0 && h.kills < h.target)
+                return list
+                  .slice()
+                  .sort((a, b) => getHunterOrder(a.name) - getHunterOrder(b.name))
+                  .map((h, i) => ({
+                    key: `hunter-${i}`,
+                    originalName: h.name,
+                    enemyName: HUNTER_NAME_MAP[h.name] ?? h.name,
+                    name: `${HUNTER_NAME_MAP[h.name] ?? h.name} — ${h.kills}/${h.target}`,
+                    ok: h.kills >= h.target,
+                    optional: h.optional,
+                    link: `https://silksong.wiki/wiki/${encodeURIComponent(HUNTER_NAME_MAP[h.name] ?? h.name)}`,
+                  }))
               }
               const def = categories.find(c => c.key === key)
               return (def?.items ?? []).map((n, i) => ({ key: `${key}-${i}`, name: n, ok: false }))
             }
-            const selected = categories.find(c => c.key === selectedCategory) ?? null
+            const selected = categories.find(c => c.key === selectedCategory) ?? (selectedCategory === 'huntersJournal' ? hunterJournalCategory : null)
             return (
               <div className="overview-layout">
                 <div>
@@ -658,7 +709,7 @@ function App(): ReactElement {
 
 
                     return (
-                      <div style={{ textAlign: 'center', marginBottom: '20px', padding: '16px', background: 'linear-gradient(135deg, #1a1f2e 0%, #242a33 100%)', borderRadius: '12px', border: '1px solid #2a3441' }}>
+                      <div style={{ textAlign: 'center', marginBottom: '20px', padding: '16px', background: 'linear-gradient(135deg, #151a26 0%, #0a0f14 100%)', borderRadius: '12px', border: '1px solid #252f3c' }}>
                         <div style={{ fontSize: '16px', color: '#94a3b8', marginBottom: '8px', fontWeight: '500' }}>
                           {t('overallCompletion')}
                         </div>
@@ -706,7 +757,7 @@ function App(): ReactElement {
                               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
                               marginTop: '4px'
                             }}>
-{t('tooltipText').split('\n').map((line, i) => (
+                              {t('tooltipText').split('\n').map((line, i) => (
                                 <React.Fragment key={i}>
                                   {line}
                                   {i < t('tooltipText').split('\n').length - 1 && <br />}
@@ -784,25 +835,145 @@ function App(): ReactElement {
                       </div>
                     ))}
                   </div>
+                  <div style={{ marginTop: '24px', padding: '20px', background: 'linear-gradient(135deg, #151a26 0%, #0a0f14 100%)', borderRadius: '12px', border: '2px solid #252f3c' }}>
+                    <div className="placeholder-card clickable" onClick={() => setSelectedCategory('huntersJournal')} style={{ background: 'transparent', border: 'none', padding: 0 }}>
+                      <div className="ph-title" style={{ fontSize: '18px', marginBottom: '12px' }}>
+                        {hunterJournalCategory.name}
+                      </div>
+                      {(() => {
+                        const requiredEntries = hunterEntries.filter(h => !h.optional)
+                        const killed = requiredEntries.filter(h => h.kills >= h.target).length
+                        const found = requiredEntries.filter(h => h.kills > 0).length
+                        const totalRequired = requiredEntries.length
+                        const isDone = killed === totalRequired
+
+                        return (
+                          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                            <div style={{ flex: 1 }}>
+                              <div className="ph-sub" style={{ color: isDone ? '#2ecc71' : '#ff7a86', fontSize: '20px', marginBottom: '8px' }}>
+                                {killed} / {totalRequired}
+                                <span
+                                  style={{
+                                    fontSize: '14px',
+                                    color: '#94a3b8',
+                                    marginLeft: '8px',
+                                    cursor: 'help',
+                                    padding: '2px 6px',
+                                    backgroundColor: 'rgba(148, 163, 184, 0.1)',
+                                    borderRadius: '4px',
+                                    border: '1px solid rgba(148, 163, 184, 0.2)'
+                                  }}
+                                  title={t('hjMaxTooltip')}
+                                >
+                                  {t('hjMaxLabel')}
+                                </span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '16px', fontSize: '13px' }}>
+                                <div style={{ color: '#94a3b8' }}>
+                                  {t('hjFoundCount')}: <span style={{ color: '#e2e8f0', fontWeight: 'bold' }}>{found}/{totalRequired}</span>
+                                </div>
+                                <div style={{ color: '#94a3b8' }}>
+                                  {t('hjKilledCount')}: <span style={{ color: '#e2e8f0', fontWeight: 'bold' }}>{killed}/{totalRequired}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })()}
+                    </div>
+                  </div>
                 </div>
                 <div className="details-panel">
                   <div className="details-header">
                     <div className="details-title">{selected ? selected.name : t('details')}</div>
-                    <div className="details-sub">{selected ? `${selected.percent} ${t('total')}` : t('selectCategory')}</div>
+                    <div className="details-sub">
+                      {selected ? (
+                        selected.key === 'huntersJournal' ? (
+                          <span>
+                            {hunterEntries.filter(h => !h.optional).length} {t('total')}
+                            {' '}
+                            <span
+                              style={{
+                                cursor: 'help',
+                                padding: '2px 6px',
+                                backgroundColor: 'rgba(148, 163, 184, 0.1)',
+                                borderRadius: '4px',
+                                border: '1px solid rgba(148, 163, 184, 0.2)',
+                                color: '#94a3b8'
+                              }}
+                              title={t('hjMaxTooltip')}
+                            >
+                              {t('hjMaxLabel')}
+                            </span>
+                          </span>
+                        ) : (
+                          `${selected.percent} ${t('total')}`
+                        )
+                      ) : (
+                        t('selectCategory')
+                      )}
+                    </div>
                   </div>
                   <div className="filters-row">
-                    <button className={`btn small ${hideFound ? 'primary' : ''}`} onClick={() => setHideFound(v => !v)}>{hideFound ? t('showAll') : t('showOnlyMissing')}</button>
+                    {selected?.key === 'huntersJournal' ? (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button className={`btn small ${hunterFilter === 'all' ? 'primary' : ''}`} onClick={() => setHunterFilter('all')}>{t('showAll')}</button>
+                        <button className={`btn small ${hunterFilter === 'found' ? 'primary' : ''}`} onClick={() => setHunterFilter('found')}>{t('hjFound')}</button>
+                        <button className={`btn small ${hunterFilter === 'notFound' ? 'primary' : ''}`} onClick={() => setHunterFilter('notFound')}>{t('hjNotFound')}</button>
+                        <button className={`btn small ${hunterFilter === 'incomplete' ? 'primary' : ''}`} onClick={() => setHunterFilter('incomplete')}>{t('hjIncomplete')}</button>
+                      </div>
+                    ) : (
+                      <button className={`btn small ${hideFound ? 'primary' : ''}`} onClick={() => setHideFound(v => !v)}>{hideFound ? t('showAll') : t('showOnlyMissing')}</button>
+                    )}
                   </div>
                   <div className="details-content">
                     {(() => {
                       const rows = (selected ? detailsItems(selected.key) : [])
+                      const cat = (selected?.key ?? 'tools') as GameCategory
+
+                      if (cat === 'huntersJournal') {
+
+                        return (
+                          <div className="enemies-grid">
+                            {rows.map((it: any, idx: number) => {
+                              const nameKey = it.enemyName ?? it.name
+                              const translatedName = gameTr.name(cat, nameKey, nameKey)
+                              const displayName = it.name.includes('—')
+                                ? it.name.replace(it.enemyName ?? nameKey, translatedName)
+                                : translatedName
+
+
+                              const match = it.name.match(/(\d+)\/(\d+)$/)
+                              const kills = match ? parseInt(match[1]) : 0
+                              const target = match ? parseInt(match[2]) : 0
+
+                              return (
+                                <EnemyCard
+                                  key={it.key ?? `enemy-${idx}`}
+                                  enemyName={it.originalName ?? it.enemyName ?? nameKey}
+                                  displayName={translatedName}
+                                  kills={kills}
+                                  target={target}
+                                  isCompleted={it.ok}
+                                  isOptional={it.optional}
+                                  link={it.link}
+                                />
+                              )
+                            })}
+                          </div>
+                        )
+                      }
+
+
                       return rows.map((it: any, idx: number) => {
                         const actVal = (it as any).act as number | undefined
                         const hasLink = Boolean(it.link && it.link.length > 0 && it.link !== '#')
-                        const cat = (selected?.key ?? 'tools') as GameCategory
-                        const displayName = gameTr.name(cat, it.name, it.name)
+                        const nameKey = it.name
+                        const translatedName = gameTr.name(cat, nameKey, nameKey)
+                        const displayName = translatedName
+
                         return (
-                          <div key={it.key ?? `${selected?.key ?? 'none'}-${idx}`} className="item-row" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto auto', alignItems: 'center', gap: '8px' }}>
+                          <div key={it.key ?? `${selected?.key ?? 'none'}-${idx}`} className="item-row">
                             {typeof actVal !== 'undefined' ? (
                               <span className={`act-badge act-${actVal ?? 0}`}>{t('actLabel')} {actVal ?? '?'}</span>
                             ) : (
@@ -818,11 +989,13 @@ function App(): ReactElement {
                   </div>
                 </div>
               </div>
+
             )
           })()}
         </section>
       )}
     </div>
+
   )
 }
 
