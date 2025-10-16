@@ -465,13 +465,18 @@ details[open] .chevron {
 
 .placeholder-card.clickable {
   cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
 }
 
 .placeholder-card.clickable:hover {
   transform: translateY(-2px);
-  border-color: #3a4352;
-  background: #0f1420;
+  border-color: #3a4352 !important;
+  background: linear-gradient(135deg, #1a1f2e 0%, #0f1420 100%) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  border: 1px solid #3a4352 !important;
+  padding: 16px !important;
 }
 
 .overview-layout {
@@ -592,13 +597,17 @@ details[open] .chevron {
 
 /* Enemy Icons */
 .enemy-icon {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.2s ease;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .enemy-icon:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
 }
 
 .item-row {
@@ -628,12 +637,17 @@ details[open] .chevron {
 
 /* Enemy Icons */
 .enemy-icon {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .enemy-icon:hover {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transform: scale(1.05);
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
 }
 
 .item-row {
@@ -795,6 +809,9 @@ details[open] .chevron {
 
 .enemy-icon:hover {
   transform: scale(1.05);
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
 }
 
 /* Enemy Cards Grid - 3 columns */
@@ -1126,13 +1143,17 @@ details[open] .chevron {
   border: 1px solid #252f3c;
   border-radius: 8px;
   padding: 16px;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .placeholder-card:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   border-color: #3a3a3a;
+  background: linear-gradient(135deg, #1a1f2e 0%, #0f1420 100%);
 }
 
 .placeholder-card.clickable {
@@ -1196,6 +1217,59 @@ details[open] .chevron {
   border: 2px solid #2a2a2a;
   border-radius: 12px;
   padding: 20px;
+}
+
+/* Hunter's Journal container hover effect */
+.hunters-journal-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.hunters-journal-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  border-color: #3a4352 !important;
+  background: linear-gradient(135deg, #1a1f2e 0%, #0f1420 100%) !important;
+}
+
+/* Hunter's Journal inner card - remove its own hover */
+.placeholder-card.clickable[style*="background: transparent"] {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  transition: none !important;
+}
+
+.placeholder-card.clickable[style*="background: transparent"]:hover {
+  background: transparent !important;
+  border: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* GitHub icon styles */
+.github-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.github-icon:hover {
+  color: #e2e8f0;
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.github-icon svg {
+  transition: transform 0.2s ease;
+}
+
+.github-icon:hover svg {
+  transform: scale(1.1);
 }
 
 /* Filters row dark background */
@@ -1305,10 +1379,13 @@ details[open] .chevron {
   background: transparent !important;
   border-radius: 50% !important;
   outline: none !important;
+  box-shadow: none !important;
 }
 
 .enemy-icon:hover {
   transform: scale(1.05);
   outline: none !important;
   box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
 }
