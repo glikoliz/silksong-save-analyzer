@@ -68,7 +68,7 @@ const EnemyIcon: React.FC<EnemyIconProps> = ({
 
   return (
     <img 
-      src={`./extracted_webp/${encodeURIComponent(currentFileName)}.webp`}
+      src={`./enemy_icons/${encodeURIComponent(currentFileName)}.webp`}
       alt={enemyName}
       width={size}
       height={size}

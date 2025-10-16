@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import type { ReactElement } from 'react'
 import './App.css'
-import EnemyIcon from './components/EnemyIcon'
 import EnemyCard from './components/EnemyCard'
 import { decode } from './crypto'
 import { TOOL_ITEMS, NAIL_UPGRADES, MASKS, type MaskEntry, SPOOL_FRAGMENTS, SILK_HEARTS, MISC_ITEMS, CRESTS, SKILLS, TOOL_POUCH_UPGRADES, CRAFTING_KIT_UPGRADES, ABILITIES, type NailUpgrade } from './constants'
