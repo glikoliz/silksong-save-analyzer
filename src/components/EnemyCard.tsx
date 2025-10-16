@@ -20,7 +20,7 @@ const EnemyCard: React.FC<EnemyCardProps> = ({
   isOptional = false,
   link
 }) => {
-  const hasLink = Boolean(link && link.length > 0 && link !== '#')
+  const hasLink = Boolean(link && link.length > 0 && link !== '#' && link !== 'Empty')
   
   return (
     <div className={`enemy-card ${isCompleted ? 'completed' : ''} ${isOptional ? 'optional' : ''}`}>
@@ -52,17 +52,16 @@ const EnemyCard: React.FC<EnemyCardProps> = ({
           </div>
         </div>
         
-        {hasLink && (
-          <a 
-            className="enemy-link" 
-            href={link} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            title="Open on wiki"
-          >
-            🗺️
-          </a>
-        )}
+        <a 
+          className={`enemy-link ${!hasLink ? 'disabled' : ''}`}
+          href={hasLink ? link : '#'} 
+          target={hasLink ? "_blank" : undefined}
+          rel={hasLink ? "noopener noreferrer" : undefined}
+          title={hasLink ? "Open on map" : "Map location not available"}
+          onClick={!hasLink ? (e) => e.preventDefault() : undefined}
+        >
+          🗺️
+        </a>
       </div>
     </div>
   )

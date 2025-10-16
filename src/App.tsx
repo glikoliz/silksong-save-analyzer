@@ -5,7 +5,7 @@ import EnemyCard from './components/EnemyCard'
 import { decode } from './crypto'
 import { TOOL_ITEMS, NAIL_UPGRADES, MASKS, type MaskEntry, SPOOL_FRAGMENTS, SILK_HEARTS, MISC_ITEMS, CRESTS, SKILLS, TOOL_POUCH_UPGRADES, CRAFTING_KIT_UPGRADES, ABILITIES, type NailUpgrade } from './constants'
 import { useTranslation } from './i18n/useTranslation'
-import { HUNTER_JOURNAL_TARGETS, HUNTER_NAME_MAP } from './hunter'
+import { HUNTER_JOURNAL_TARGETS, HUNTER_NAME_MAP, HUNTER_MAP_LINKS } from './hunter'
 import { getHunterOrder } from './hunterOrder'
 import { makeGameTr, type GameCategory } from './i18n/gameTranslations'
 
@@ -636,7 +636,7 @@ function App(): ReactElement {
                     name: `${HUNTER_NAME_MAP[h.name] ?? h.name} — ${h.kills}/${h.target}`,
                     ok: h.kills >= h.target,
                     optional: h.optional,
-                    link: `https://silksong.wiki/wiki/${encodeURIComponent(HUNTER_NAME_MAP[h.name] ?? h.name)}`,
+                    link: HUNTER_MAP_LINKS[h.name] ?? 'Empty',
                   }))
               }
               const def = categories.find(c => c.key === key)

@@ -927,6 +927,17 @@ details[open] .chevron {
   transform: scale(1.1);
 }
 
+.enemy-link.disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.enemy-link.disabled:hover {
+  opacity: 0.3;
+  transform: none;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .enemies-grid {
