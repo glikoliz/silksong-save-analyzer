@@ -1,14 +1,14 @@
 #root {
   width: 100%;
   margin: 0;
-  padding: 20px 24px 32px;
+  padding: 12px 16px 16px;
   scrollbar-gutter: stable both-edges;
 }
 
 .container {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
   min-height: 100vh;
 }
 
@@ -21,7 +21,7 @@
 
 .title {
   margin: 0;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
   letter-spacing: 0.3px;
 }
@@ -36,8 +36,8 @@
   position: relative;
   border: 1px dashed #3a3f47;
   background: #101317;
-  border-radius: 14px;
-  padding: 28px;
+  border-radius: 12px;
+  padding: 20px;
   text-align: center;
   color: #c9d1d9;
   transition: all 0.2s ease-in-out;
@@ -422,7 +422,7 @@ details[open] .chevron {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 12px;
-  max-height: 72vh;
+  max-height: 75vh;
   overflow: auto;
 }
 
@@ -471,18 +471,17 @@ details[open] .chevron {
 }
 
 .placeholder-card.clickable:hover {
-  transform: translateY(-2px);
   border-color: #3a4352 !important;
   background: linear-gradient(135deg, #1a1f2e 0%, #0f1420 100%) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
   border: 1px solid #3a4352 !important;
-  padding: 16px !important;
+  padding: 12px !important;
 }
 
 .overview-layout {
   display: grid;
   grid-template-columns: 2fr 3fr;
-  gap: 16px;
+  gap: 12px;
   align-items: start;
 }
 
@@ -502,7 +501,7 @@ details[open] .chevron {
   background: #0b0f15;
   display: flex;
   flex-direction: column;
-  max-height: 72vh;
+  max-height: 72.5vh;
 }
 
 .details-header {
@@ -1101,7 +1100,7 @@ details[open] .chevron {
 /* Details panel */
 .details-content {
   padding: 16px;
-  max-height: 600px;
+  max-height: 610px;
   overflow-y: auto;
 }
 
@@ -1126,8 +1125,8 @@ details[open] .chevron {
 .overview-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-top: 20px;
+  gap: 16px;
+  margin-top: 12px;
 }
 
 .details-panel {
@@ -1142,7 +1141,7 @@ details[open] .chevron {
   background: linear-gradient(135deg, #151a26 0%, #0a0f14 100%);
   border: 1px solid #252f3c;
   border-radius: 8px;
-  padding: 16px;
+  padding: 12px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   width: 100%;
@@ -1150,7 +1149,6 @@ details[open] .chevron {
 }
 
 .placeholder-card:hover {
-  transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   border-color: #3a3a3a;
   background: linear-gradient(135deg, #1a1f2e 0%, #0f1420 100%);
@@ -1182,7 +1180,7 @@ details[open] .chevron {
 
 /* Section styles */
 .section {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 /* Item name styling */
@@ -1216,7 +1214,7 @@ details[open] .chevron {
   background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
   border: 2px solid #2a2a2a;
   border-radius: 12px;
-  padding: 20px;
+  padding: 16px;
 }
 
 /* Hunter's Journal container hover effect */
@@ -1224,8 +1222,9 @@ details[open] .chevron {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
+
+
 .hunters-journal-card:hover {
-  transform: translateY(-2px) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
   border-color: #3a4352 !important;
   background: linear-gradient(135deg, #1a1f2e 0%, #0f1420 100%) !important;
@@ -1349,7 +1348,7 @@ details[open] .chevron {
 /* Details content with dark background */
 .details-content {
   padding: 16px;
-  max-height: 600px;
+  max-height: 610px;
   overflow-y: auto;
   background: linear-gradient(135deg, #0a0f14 0%, #050a0f 100%);
 }

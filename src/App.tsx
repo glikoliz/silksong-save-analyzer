@@ -845,7 +845,7 @@ function App(): ReactElement {
                       </div>
                     ))}
                   </div>
-                  <div className="hunters-journal-card" onClick={() => setSelectedCategory('huntersJournal')} style={{ marginTop: '24px', padding: '20px', background: 'linear-gradient(135deg, #151a26 0%, #0a0f14 100%)', borderRadius: '12px', border: '2px solid #252f3c', cursor: 'pointer', transition: 'all 0.2s ease' }}>
+                  <div className="hunters-journal-card" onClick={() => setSelectedCategory('huntersJournal')} style={{ marginTop: '16px', padding: '16px', background: 'linear-gradient(135deg, #151a26 0%, #0a0f14 100%)', borderRadius: '12px', border: '2px solid #252f3c', cursor: 'pointer', transition: 'all 0.2s ease' }}>
                     <div style={{ background: 'transparent', border: 'none', padding: 0 }}>
                       <div className="ph-title" style={{ fontSize: '18px', marginBottom: '12px' }}>
                         {hunterJournalCategory.name}
