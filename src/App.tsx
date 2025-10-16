@@ -41,9 +41,11 @@ function computeFourFlags(rawCount: number, extras: boolean[], order: ('u2' | 'u
     }
   }
   if (count < rawCount) {
-    if (!u2) u2 = true
-    else if (!u3) u3 = true
-    else if (!u4) u4 = true
+    for (let i = 1; i <= rawCount; i++) {
+      if (i === 2 && !u2) u2 = true
+      if (i === 3 && !u3) u3 = true
+      if (i === 4 && !u4) u4 = true
+    }
   }
   return { u1, u2, u3, u4 }
 }
