@@ -8,7 +8,7 @@ const STORAGE_KEY = 'silksong-analyzer-language'
 export function useTranslation() {
   const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem(STORAGE_KEY)
-    return (saved === 'en' || saved === 'ru') ? saved : 'ru'
+    return (saved === 'en' || saved === 'ru') ? saved : 'en'
   })
 
   const changeLanguage = useCallback((newLanguage: Language) => {
