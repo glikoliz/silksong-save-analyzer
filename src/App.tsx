@@ -299,10 +299,7 @@ function App(): ReactElement {
 
   return (
     <div className="container">
-      <header className="header">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-          <h1 className="title">{t('title')}</h1>
-          <div style={{ display: 'flex', gap: '8px' }}>
+      <div style={{ position: 'absolute', top: '16px', right: '16px', display: 'flex', gap: '8px', zIndex: 1000 }}>
             <button 
               className={`btn small ${language === 'ru' ? 'primary' : ''}`}
               onClick={() => changeLanguage('ru')}
@@ -316,7 +313,8 @@ function App(): ReactElement {
               EN
             </button>
           </div>
-        </div>
+      <header className="header">
+        <h1 className="title">{t('title')}</h1>
         <p className="subtitle">{t('subtitle')}</p>
       </header>
       <section className={`dropzone ${dragActive ? 'active' : ''}`} onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave} role="button" aria-label={t('dropAria')} tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') triggerBrowse() }}>
