@@ -319,6 +319,29 @@ function App(): ReactElement {
 
   const triggerBrowse = useCallback(() => { fileInputRef.current?.click() }, [])
 
+  function getMissingItems() {
+    const links = [];
+    links.push(...tools.filter(t => !t.isUnlocked && t.link).map(t => t.link));
+    links.push(...NAIL_UPGRADES.filter(n => !nail[n.key] && n.link).map(n => n.link));
+    links.push(...TOOL_POUCH_UPGRADES.filter(tp => !toolPouch[tp.key] && tp.link).map(tp => tp.link));
+    links.push(...CRAFTING_KIT_UPGRADES.filter(ck => !craftingKit[ck.key] && ck.link).map(ck => ck.link));
+    links.push(...maskShards.filter(m => !m.ok && m.link).map(m => m.link));
+    links.push(...spoolFrags.filter(s => !s.ok && s.link).map(s => s.link));
+    links.push(...silkHearts.filter(h => !h.ok && h.link).map(h => h.link));
+    links.push(...miscItems.filter(m => !m.ok && m.link).map(m => m.link));
+    links.push(...crests.filter(c => !c.ok && c.link).map(c => c.link));
+    links.push(...skills.filter(s => !s.ok && s.link).map(s => s.link));
+    links.push(...abilities.filter(a => !a.ok && a.link).map(a => a.link));
+
+    const locationIds = links
+      .map(url => (url ? url.match(/locationIds=(\d+)/)?.[1] : undefined))
+      .join(',');
+
+    const combinedUrl = `https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=${locationIds}`;
+    return combinedUrl
+  }
+
+
   return (
     <div className="container">
       <div style={{ position: 'absolute', top: '16px', right: '16px', display: 'flex', gap: '8px', zIndex: 1000, alignItems: 'center' }}>
@@ -844,6 +867,12 @@ function App(): ReactElement {
                         })()}
                       </div>
                     ))}
+                    <div className="placeholder-card clickable">
+                        <div className="ph-title">
+                          {'All Missing Items'}
+                        </div>
+                      <a className="btn small" href={getMissingItems()}> Open map </a>
+                    </div>
                   </div>
                   <div className="hunters-journal-card" onClick={() => setSelectedCategory('huntersJournal')} style={{ marginTop: '16px', padding: '16px', background: 'linear-gradient(135deg, #151a26 0%, #0a0f14 100%)', borderRadius: '12px', border: '2px solid #252f3c', cursor: 'pointer', transition: 'all 0.2s ease' }}>
                     <div style={{ background: 'transparent', border: 'none', padding: 0 }}>
