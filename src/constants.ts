@@ -187,11 +187,12 @@ export const MISC_ITEMS: MiscEntry[] = [
   { display: 'Sylphsong', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479654', whichAct: 2, type: 'flag', flag: 'HasBoundCrestUpgrader' },
   { display: 'Everbloom', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479387', whichAct: 3, type: 'collectable', name: 'White Flower', amount: 1 }
 ]
+
 export type CrestEntry = {
-  display: string
-  link: string
-  whichAct: 1 | 2 | 3
-  internalId: string
+  display: string;
+  link: string;
+  whichAct: 1 | 2 | 3;
+  internalId: string;
 }
 
 export const CRESTS: CrestEntry[] = [
@@ -201,12 +202,13 @@ export const CRESTS: CrestEntry[] = [
   { display: 'Architect', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478745', whichAct: 2, internalId: 'Toolmaster' },
   { display: 'Witch', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478815', whichAct: 2, internalId: 'Witch' },
   { display: 'Shaman', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479384', whichAct: 3, internalId: 'Spell' }
-]
+];
+
 export type SkillEntry = {
-  display: string
-  link: string
-  whichAct: 1 | 2 | 3
-  internalId: string
+  display: string;
+  link: string;
+  whichAct: 1 | 2 | 3;
+  internalId: string;
 }
 
 export const SKILLS: SkillEntry[] = [
@@ -216,15 +218,17 @@ export const SKILLS: SkillEntry[] = [
   { display: 'Rune Rage', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479025', whichAct: 2, internalId: 'Silk Bomb' },
   { display: 'Sharpdart', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479079', whichAct: 2, internalId: 'Silk Charge' },
   { display: 'Pale Nails', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479606', whichAct: 3, internalId: 'Silk Boss Needle' }
-]
+];
+
 export type ToolPouchUpgrade = BaseEntry & { key: 'u1' | 'u2' | 'u3' | 'u4'; ingame: string[] }
 
 export const TOOL_POUCH_UPGRADES: ToolPouchUpgrade[] = [
-  { key: 'u1', display: 'Tool Pouch upgrade 1', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=477950', whichAct: 1, ingame: [] },
-  { key: 'u2', display: 'Tool Pouch upgrade 2', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479167', whichAct: 1, ingame: [] },
-  { key: 'u3', display: 'Tool Pouch upgrade 3', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478252', whichAct: 1, ingame: [] },
-  { key: 'u4', display: 'Tool Pouch upgrade 4', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479436', whichAct: 2, ingame: [] }
-]
+  { key: 'u1', display: 'Tool Pouch upgrade 1', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=477950', whichAct: 1, ingame: ['PurchasedPilgrimsRestToolPouch'] },
+  { key: 'u3', display: 'Tool Pouch upgrade 2', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478252', whichAct: 1, ingame: ['pinGalleriesCompleted', 'Ladybug Craft Pickup'] },
+  { key: 'u2', display: 'Tool Pouch upgrade 3', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479167', whichAct: 2, ingame: ['Journal'] },
+  { key: 'u4', display: 'Tool Pouch upgrade 4', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479436', whichAct: 2, ingame: ['Caravan Troupe Leader Fleatopia NPC'] }
+];
+
 export type CraftingKitUpgrade = BaseEntry & { key: 'u1' | 'u2' | 'u3' | 'u4'; ingame: string[] }
 
 export const CRAFTING_KIT_UPGRADES: CraftingKitUpgrade[] = [

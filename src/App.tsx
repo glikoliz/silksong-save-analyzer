@@ -101,8 +101,12 @@ function nailsFromRaw(nailUpgradesRaw: number, gotGourmand: boolean, fleaEnded: 
   return computeFourFlags(nailUpgradesRaw, [gotGourmand, fleaEnded], ['u3', 'u4'])
 }
 
-function toolPouchFromRaw(toolPouchUpgradesRaw: number, journalCompleted: boolean, pinGalleryChallenge: boolean) {
-  return computeFourFlags(toolPouchUpgradesRaw, [journalCompleted, pinGalleryChallenge], ['u2', 'u3'])
+function toolPouchFromRaw(toolPouchUpgradesRaw: number, purchasedPilgrimsRestToolPouch: boolean, pinGalleriesCompleted: number, toolPouchBools: Set<string>) {
+  const u1 = purchasedPilgrimsRestToolPouch
+  const u2 = pinGalleriesCompleted >= 1 || toolPouchBools.has('Bone_12|Ladybug Craft Pickup')
+  const u3 = toolPouchBools.has('Aqueduct_05|Caravan Troupe Leader Fleatopia NPC')
+  const u4 = false
+  return { u1, u2, u3, u4 }
 }
 
 function craftingKitFromRaw(toolKitUpgradesRaw: number, purchasedGrindleToolKit: boolean, purchasedArchitectToolKit: boolean) {
@@ -162,6 +166,7 @@ function App(): ReactElement {
       const decrypted = decode(bytes)
       const parsed = JSON.parse(decrypted) as any
       const pd: any = parsed?.playerData ?? {}
+      const completedQuests = getCompletedQuestsSet(pd)
       const saved: any[] = safeArray(pd?.Tools?.savedData)
       const map = buildMapFromSaved(saved)
       setTools(toolsFromMap(map))
@@ -170,22 +175,17 @@ function App(): ReactElement {
       const gotGourmand = Boolean(pd?.GotGourmandReward)
       const fleaEnded = Boolean(pd?.FleaGamesEnded)
       setNail(nailsFromRaw(nailUpgradesRaw, gotGourmand, fleaEnded))
-      const toolPouchUpgradesRaw = Number(pd?.ToolPouchUpgrades ?? 0)
-      const pinGalleryChallenge = Boolean(pd?.PinGalleryLastChallengeOpen)
-      const questsArr = safeArray(pd?.QuestCompletionData?.savedData)
-      let journalCompleted = false
-      for (const q of questsArr) {
-        const qName = q?.Name ?? q?.name
-        const isCompleted = Boolean(q?.Data?.IsCompleted ?? q?.data?.isCompleted)
-        if (qName === 'Journal' && isCompleted) { journalCompleted = true; break }
-      }
-      setToolPouch(toolPouchFromRaw(toolPouchUpgradesRaw, journalCompleted, pinGalleryChallenge))
+            const toolPouchBools = buildSceneBoolSet(parsed, (_sceneName, id) => typeof id === 'string' && (id === 'Ladybug Craft Pickup' || id === 'Caravan Troupe Leader Fleatopia NPC'));
+      const u1 = Boolean(pd?.PurchasedPilgrimsRestToolPouch);
+      const u2 = (pd?.pinGalleriesCompleted >= 1) || toolPouchBools.has('Bone_12|Ladybug Craft Pickup');
+      const u3 = completedQuests.has('Journal');
+      const u4 = toolPouchBools.has('Aqueduct_05|Caravan Troupe Leader Fleatopia NPC');
+      setToolPouch({ u1, u2, u3, u4 });
       const toolKitUpgradesRaw = Number(pd?.ToolKitUpgrades ?? 0)
       const purchasedGrindleToolKit = Boolean(pd?.purchasedGrindleToolKit)
       const purchasedArchitectToolKit = Boolean(pd?.PurchasedArchitectToolKit)
       setCraftingKit(craftingKitFromRaw(toolKitUpgradesRaw, purchasedGrindleToolKit, purchasedArchitectToolKit))
       const obtainedByKey = buildSceneBoolSet(parsed, (_sceneName, id) => (id === 'Heart Piece' || (typeof id === 'string' && id.startsWith('Heart Piece'))))
-      const completedQuests = getCompletedQuestsSet(pd)
       const shards = MASKS.map((entry: MaskEntry) => {
         if (entry.type === 'sceneData') {
           const keyA = `${entry.ingame[0]}|${entry.ingame[1]}`
