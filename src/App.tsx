@@ -3,7 +3,7 @@ import type { ReactElement } from 'react'
 import './App.css'
 import EnemyCard from './components/EnemyCard'
 import { decode } from './crypto'
-import { TOOL_ITEMS, NAIL_UPGRADES, MASKS, type MaskEntry, SPOOL_FRAGMENTS, SILK_HEARTS, MISC_ITEMS, CRESTS, SKILLS, TOOL_POUCH_UPGRADES, CRAFTING_KIT_UPGRADES, ABILITIES, type NailUpgrade } from './constants'
+import { TOOL_ITEMS, NAIL_UPGRADES, MASKS, type MaskEntry, SPOOL_FRAGMENTS, SILK_HEARTS, MISC_ITEMS, CRESTS, SKILLS, TOOL_POUCH_UPGRADES, CRAFTING_KIT_UPGRADES, ABILITIES, type NailUpgrade, MEMORY_LOCKETS, type MemoryLocketEntry } from './constants'
 import { useTranslation } from './i18n/useTranslation'
 import { HUNTER_JOURNAL_TARGETS, HUNTER_NAME_MAP, HUNTER_MAP_LINKS } from './hunter'
 import { getHunterOrder } from './hunterOrder'
@@ -131,6 +131,7 @@ function App(): ReactElement {
   const [crests, setCrests] = useState<ItemRow[]>([])
   const [skills, setSkills] = useState<ItemRow[]>([])
   const [abilities, setAbilities] = useState<ItemRow[]>([])
+  const [memoryLockets, setMemoryLockets] = useState<ItemRow[]>([])
   const [hunterEntries, setHunterEntries] = useState<HunterEntry[]>([])
   const [actFilter, setActFilter] = useState<0 | 1 | 2 | 3>(0)
   const [hideFound, setHideFound] = useState<boolean>(false)
@@ -248,6 +249,23 @@ function App(): ReactElement {
       setCrests(crestsData)
       const abilitiesData = ABILITIES.map(a => ({ name: a.display, ok: Boolean((pd as any)?.[a.flag]) === true, link: a.link, act: a.whichAct }))
       setAbilities(abilitiesData)
+
+      const memoryLocketBools = buildSceneBoolSet(parsed, (_sceneName, id) => typeof id === 'string' && (id.startsWith('Collectable Item Pickup') || id === 'Sack Corpse Pickup'))
+      const memoryLocketQuests = getCompletedQuestsSet(pd)
+      const lockets = MEMORY_LOCKETS.map((locket: MemoryLocketEntry) => {
+        if (locket.type === 'sceneBool') {
+          const key = `${locket.scene}|${locket.flag}`
+          const ok = memoryLocketBools.has(key)
+          return { name: locket.display, ok, link: locket.link, act: locket.whichAct }
+        }
+        if (locket.type === 'flag') {
+          const ok = Boolean((pd as any)?.[locket.flag]) === true
+          return { name: locket.display, ok, link: locket.link, act: locket.whichAct }
+        }
+        const ok = memoryLocketQuests.has(locket.questName)
+        return { name: locket.display, ok, link: locket.link, act: locket.whichAct }
+      })
+      setMemoryLockets(lockets)
       const enemyList: any[] = Array.isArray(pd?.EnemyJournalKillData?.list) ? pd.EnemyJournalKillData.list : []
       const enemyMap = new Map<string, number>()
       for (const e of enemyList) {
@@ -273,6 +291,7 @@ function App(): ReactElement {
       setMiscItems([])
       setCrests([])
       setAbilities([])
+      setMemoryLockets([])
       setHunterEntries([])
     } finally {
       setIsProcessing(false)
@@ -332,6 +351,7 @@ function App(): ReactElement {
     links.push(...crests.filter(c => !c.ok && c.link).map(c => c.link));
     links.push(...skills.filter(s => !s.ok && s.link).map(s => s.link));
     links.push(...abilities.filter(a => !a.ok && a.link).map(a => a.link));
+    links.push(...memoryLockets.filter(l => !l.ok && l.link).map(l => l.link));
 
     const locationIds = links
       .map(url => (url ? url.match(/locationIds=(\d+)/)?.[1] : undefined))
@@ -482,6 +502,10 @@ function App(): ReactElement {
                 const filteredAbilities = filterByAct(abilities)
                 return filteredAbilities.length === 0 || filteredAbilities.every(a => a.ok)
               }
+              if (key === 'memoryLockets') {
+                const filteredLockets = filterByAct(memoryLockets)
+                return filteredLockets.length === 0 || filteredLockets.every(l => l.ok)
+              }
               if (key === 'huntersJournal') {
                 return hunterEntries.length === 0 || hunterEntries.every(h => h.kills >= h.target)
               }
@@ -582,6 +606,12 @@ function App(): ReactElement {
                 const have = Math.min(got, totalAbilities)
                 return { have, total: totalAbilities }
               }
+              if (key === 'memoryLockets') {
+                const filteredLockets = filterByAct(memoryLockets)
+                const got = filteredLockets.filter(x => x.ok).length
+                const totalLockets = filteredLockets.length
+                return { have: got, total: totalLockets }
+              }
               if (key === 'huntersJournal') {
                 const requiredEntries = hunterEntries.filter(h => !h.optional)
                 const have = requiredEntries.filter(h => h.kills >= h.target).length
@@ -655,6 +685,9 @@ function App(): ReactElement {
               if (key === 'abilities') {
                 return abilities.filter(a => (actFilter === 0 || a.act === actFilter) && (!hideFound ? true : !a.ok)).map((a, i) => ({ key: `ability-${i}`, name: a.name, ok: a.ok, link: a.link, act: a.act }))
               }
+              if (key === 'memoryLockets') {
+                return memoryLockets.filter(l => (actFilter === 0 || l.act === actFilter) && (!hideFound ? true : !l.ok)).map((l, i) => ({ key: `locket-${i}`, name: l.name, ok: l.ok, link: l.link, act: l.act }))
+              }
               if (key === 'huntersJournal') {
                 let list = hunterEntries
                 if (hunterFilter === 'found') list = list.filter(h => h.kills > 0)
@@ -676,7 +709,8 @@ function App(): ReactElement {
               const def = categories.find(c => c.key === key)
               return (def?.items ?? []).map((n, i) => ({ key: `${key}-${i}`, name: n, ok: false }))
             }
-            const selected = categories.find(c => c.key === selectedCategory) ?? (selectedCategory === 'huntersJournal' ? hunterJournalCategory : null)
+            const memoryLocketCategory = { key: 'memoryLockets', name: t('memoryLockets'), percent: 20, items: [] }
+            const selected = categories.find(c => c.key === selectedCategory) ?? (selectedCategory === 'huntersJournal' ? hunterJournalCategory : (selectedCategory === 'memoryLockets' ? memoryLocketCategory : null))
             return (
               <div className="overview-layout">
                 <div>
@@ -723,7 +757,7 @@ function App(): ReactElement {
                       itemsHave += spoolFragsHave
                       itemsTotal += spoolFragsTotal
 
-                      const categories = [silkHearts, miscItems, crests, skills, abilities]
+                      const categories = [silkHearts, miscItems, crests, skills, abilities, memoryLockets]
                       categories.forEach(category => {
                         const actItems = category.filter(item => item.act === act)
                         const have = actItems.filter(item => item.ok).length
@@ -874,6 +908,28 @@ function App(): ReactElement {
                       <a className="btn small" href={getMissingItems()}> Open map </a>
                     </div>
                   </div>
+                  <div className="hunters-journal-card" onClick={() => { setSelectedCategory('memoryLockets'); setHideFound(true); }} style={{ marginTop: '16px', padding: '16px', background: 'linear-gradient(135deg, #151a26 0%, #0a0f14 100%)', borderRadius: '12px', border: '2px solid #252f3c', cursor: 'pointer', transition: 'all 0.2s ease' }}>
+                    <div style={{ background: 'transparent', border: 'none', padding: 0 }}>
+                      <div className="ph-title" style={{ fontSize: '18px', marginBottom: '12px' }}>
+                        {t('memoryLockets')}
+                      </div>
+                      {(() => {
+                        const locketsFound = memoryLockets.filter(l => l.ok).length;
+                        const locketsTotal = memoryLockets.length;
+                        const isDone = locketsFound === locketsTotal;
+
+                        return (
+                          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                            <div style={{ flex: 1 }}>
+                              <div className="ph-sub" style={{ color: isDone ? '#2ecc71' : '#ff7a86', fontSize: '20px', marginBottom: '8px' }}>
+                                {locketsFound} / {locketsTotal}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
                   <div className="hunters-journal-card" onClick={() => setSelectedCategory('huntersJournal')} style={{ marginTop: '16px', padding: '16px', background: 'linear-gradient(135deg, #151a26 0%, #0a0f14 100%)', borderRadius: '12px', border: '2px solid #252f3c', cursor: 'pointer', transition: 'all 0.2s ease' }}>
                     <div style={{ background: 'transparent', border: 'none', padding: 0 }}>
                       <div className="ph-title" style={{ fontSize: '18px', marginBottom: '12px' }}>
@@ -977,10 +1033,7 @@ function App(): ReactElement {
                             {rows.map((it: any, idx: number) => {
                               const nameKey = it.enemyName ?? it.name
                               const translatedName = gameTr.name(cat, nameKey, nameKey)
-                              const displayName = it.name.includes('—')
-                                ? it.name.replace(it.enemyName ?? nameKey, translatedName)
-                                : translatedName
-
+                              
 
                               const match = it.name.match(/(\d+)\/(\d+)$/)
                               const kills = match ? parseInt(match[1]) : 0
@@ -1009,7 +1062,6 @@ function App(): ReactElement {
                         const hasLink = Boolean(it.link && it.link.length > 0 && it.link !== '#')
                         const nameKey = it.name
                         const translatedName = gameTr.name(cat, nameKey, nameKey)
-                        const displayName = translatedName
 
                         return (
                           <div key={it.key ?? `${selected?.key ?? 'none'}-${idx}`} className="item-row">
@@ -1018,7 +1070,7 @@ function App(): ReactElement {
                             ) : (
                               <span className={`act-badge act-0`} style={{ visibility: 'hidden' }}>{t('actLabel')} 0</span>
                             )}
-                            <span className="item-name">{displayName}</span>
+                            <span className="item-name">{translatedName}</span>
                             <a className="btn small" href={hasLink ? it.link : '#'} target="_blank" rel="noopener noreferrer" aria-disabled={hasLink ? undefined : true} style={hasLink ? undefined : { pointerEvents: 'none', opacity: 0.5 }}>{t('openMap')}</a>
                             <span className={`badge ${it.ok ? 'ok' : 'no'}`} aria-label={it.ok ? t('obtained') : t('notObtained')} title={it.ok ? t('obtained') : t('notObtained')}>{it.ok ? '✓' : '✗'}</span>
                           </div>

@@ -34,6 +34,8 @@ export interface Translations {
   craftingKitUpgrades: string
   toolPouchUpgrades: string
   abilities: string
+  memoryLockets: string
+  notCountedIn100: string
   tools: string
 
 
@@ -103,6 +105,8 @@ export const translations: Record<string, Translations> = {
     craftingKitUpgrades: 'Crafting Kit Upgrades',
     toolPouchUpgrades: 'Tool Pouch Upgrades',
     abilities: 'Abilities',
+    memoryLockets: 'Memory Lockets',
+    notCountedIn100: '(Not counted in 100%)',
     tools: 'Tools',
 
 
@@ -171,6 +175,8 @@ export const translations: Record<string, Translations> = {
     craftingKitUpgrades: 'Наборы умельца',
     toolPouchUpgrades: 'Сумки для инструментов',
     abilities: 'Способности',
+    memoryLockets: 'Медальоны на память',
+    notCountedIn100: '(Не учитывается в 100%)',
     tools: 'Инструменты',
 
 

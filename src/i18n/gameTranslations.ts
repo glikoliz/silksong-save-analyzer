@@ -11,6 +11,7 @@ export type GameCategory =
   | 'skills'
   | 'abilities'
   | 'huntersJournal'
+  | 'memoryLockets'
 
 export type GameTranslations = Record<GameCategory, Record<string, { name?: string }>>
 
@@ -32,6 +33,7 @@ export const gameTranslations: Record<'en' | 'ru', GameTranslations> = {
     skills: {},
     abilities: {},
     huntersJournal: {},
+    memoryLockets: {},
   },
   ru: {
     tools: {
@@ -179,6 +181,28 @@ export const gameTranslations: Record<'en' | 'ru', GameTranslations> = {
       'Needle Strike': { name: 'Сфокусированный удар' },
       'Clawline': { name: 'Цепкая нить' },
       'Silk Soar': { name: 'Окрыляющий шёлк' },
+    },
+    memoryLockets: {
+      'Memory Locket 1': { name: 'Медальон на память 1' },
+      'Memory Locket 2': { name: 'Медальон на память 2' },
+      'Memory Locket 3': { name: 'Медальон на память 3' },
+      'Memory Locket 4': { name: 'Медальон на память 4' },
+      'Memory Locket 5': { name: 'Медальон на память 5' },
+      'Memory Locket 6': { name: 'Медальон на память 6' },
+      'Memory Locket 7': { name: 'Медальон на память 7' },
+      'Memory Locket 8': { name: 'Медальон на память 8' },
+      'Memory Locket 9': { name: 'Медальон на память 9' },
+      'Memory Locket 10': { name: 'Медальон на память 10' },
+      'Memory Locket 11': { name: 'Медальон на память 11' },
+      'Memory Locket 12': { name: 'Медальон на память 12' },
+      'Memory Locket 13': { name: 'Медальон на память 13' },
+      'Memory Locket 14': { name: 'Медальон на память 14' },
+      'Memory Locket 15': { name: 'Медальон на память 15' },
+      'Memory Locket 16': { name: 'Медальон на память 16' },
+      'Memory Locket 17': { name: 'Медальон на память 17' },
+      'Memory Locket 18': { name: 'Медальон на память 18' },
+      'Memory Locket 19': { name: 'Медальон на память 19' },
+      'Memory Locket 20': { name: 'Медальон на память 20' },
     },
     huntersJournal: {
       'Shadow Creeper': { name: 'Теневой ползун' },

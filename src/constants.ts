@@ -248,3 +248,33 @@ export const ABILITIES: AbilityEntry[] = [
   { display: 'Clawline', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478714', whichAct: 2, flag: 'hasHarpoonDash' },
   { display: 'Silk Soar', link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479288', whichAct: 3, flag: 'hasSuperJump' }
 ]
+
+export type MemoryLocketSource =
+  | { type: 'sceneBool'; scene: string; flag: string }
+  | { type: 'flag'; flag: string }
+  | { type: 'quest'; questName: string }
+
+export type MemoryLocketEntry = { display: string; link: string; whichAct: 1 | 2 | 3 } & MemoryLocketSource
+
+export const MEMORY_LOCKETS: MemoryLocketEntry[] = [
+  { display: 'Memory Locket 1', whichAct: 1, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478246', type: 'sceneBool', scene: 'Bone_18', flag: 'Collectable Item Pickup' },
+  { display: 'Memory Locket 2', whichAct: 1, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478017', type: 'sceneBool', scene: 'Ant_20', flag: 'Collectable Item Pickup' },
+  { display: 'Memory Locket 3', whichAct: 1, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=477953', type: 'flag', flag: 'PurchasedPilgrimsRestMemoryLocket' },
+  { display: 'Memory Locket 4', whichAct: 1, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478035', type: 'sceneBool', scene: 'Greymoor_16', flag: 'Collectable Item Pickup' },
+  { display: 'Memory Locket 5', whichAct: 1, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478222', type: 'quest', questName: 'Rock Rollers' },
+  { display: 'Memory Locket 6', whichAct: 1, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478204', type: 'flag', flag: 'PurchasedBelltownMemoryLocket' },
+  { display: 'Memory Locket 7', whichAct: 1, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478502', type: 'sceneBool', scene: 'Coral_02', flag: 'Collectable Item Pickup (1)' },
+  { display: 'Memory Locket 8', whichAct: 1, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478493', type: 'sceneBool', scene: 'Crawl_09', flag: 'Collectable Item Pickup' },
+  { display: 'Memory Locket 9', whichAct: 2, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478787', type: 'sceneBool', scene: 'Shadow_20', flag: 'Collectable Item Pickup' },
+  { display: 'Memory Locket 10', whichAct: 2, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478372', type: 'sceneBool', scene: 'Bellway_City', flag: 'Collectable Item Pickup' },
+  { display: 'Memory Locket 11', whichAct: 2, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478571', type: 'sceneBool', scene: 'Under_08', flag: 'Collectable Item Pickup' },
+  { display: 'Memory Locket 12', whichAct: 2, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478836', type: 'sceneBool', scene: 'Dock_13', flag: 'Collectable Item Pickup' },
+  { display: 'Memory Locket 13', whichAct: 2, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478676', type: 'sceneBool', scene: 'Library_08', flag: 'Collectable Item Pickup' },
+  { display: 'Memory Locket 14', whichAct: 2, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479204', type: 'sceneBool', scene: 'Coral_23', flag: 'Collectable Item Pickup' },
+  { display: 'Memory Locket 15', whichAct: 2, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478039', type: 'sceneBool', scene: 'Halfway_01', flag: 'Collectable Item Pickup' },
+  { display: 'Memory Locket 16', whichAct: 2, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479110', type: 'sceneBool', scene: 'Arborium_05', flag: 'Collectable Item Pickup' },
+  { display: 'Memory Locket 17', whichAct: 2, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479017', type: 'sceneBool', scene: 'Slab_Cell_Quiet', flag: 'Collectable Item Pickup' },
+  { display: 'Memory Locket 18', whichAct: 2, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478851', type: 'sceneBool', scene: 'Shadow_27', flag: 'Sack Corpse Pickup' },
+  { display: 'Memory Locket 19', whichAct: 3, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=478212', type: 'sceneBool', scene: 'Belltown', flag: 'Collectable Item Pickup' },
+  { display: 'Memory Locket 20', whichAct: 3, link: 'https://mapgenie.io/hollow-knight-silksong/maps/pharloom?locationIds=479196', type: 'sceneBool', scene: 'Bone_East_25', flag: 'Collectable Item Pickup' }
+]

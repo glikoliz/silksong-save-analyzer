@@ -1245,6 +1245,29 @@ details[open] .chevron {
   box-shadow: none !important;
 }
 
+/* Memory Lockets special styling */
+.placeholder-card.memory-lockets {
+  background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1a 100%) !important;
+  border: 2px solid #2a2a3a !important;
+  transform: none !important;
+  transition: none !important;
+  padding: 12px !important;
+}
+
+.placeholder-card.memory-lockets:hover {
+  background: linear-gradient(135deg, #252540 0%, #1a1a2e 100%) !important;
+  border-color: #3a3a4a !important;
+  box-shadow: 0 4px 12px rgba(42, 42, 58, 0.4) !important;
+  transform: none !important;
+  transition: none !important;
+  padding: 12px !important;
+  border: 2px solid #3a3a4a !important;
+}
+
+.placeholder-card.memory-lockets .ph-title {
+  color: #e2e8f0 !important;
+}
+
 /* GitHub icon styles */
 .github-icon {
   display: inline-flex;
